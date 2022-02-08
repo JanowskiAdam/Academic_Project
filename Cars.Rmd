@@ -1,0 +1,827 @@
+---
+title: "Cars"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(plotly)
+library(plyr)
+library(flexdashboard)
+library(mixtools)
+library(MASS)
+attach(Cars93)
+library(dplyr)
+library(Hmisc)
+library(misc3d)
+#library(plyt)
+```
+
+Estymator Jądrowy Gęstości
+=======================================================================
+Najlepszymi zmiennymi do klasyfikacji klas Small-Midsize-Compact okazała się para EngineSize oraz Width.
+
+Row
+-----------------------------------------------------------------------
+###
+
+```{r fig2, out.width = '50%'}
+cars_l = as_tibble(Cars93)
+cars_l = dplyr::select(cars_l, c(3:8,12:15,17,19:25))
+len = ncol(cars_l)
+cars_l = na.delete(cars_l)
+
+Small = which(cars_l$Type=="Small")
+Midsize = which(cars_l$Type=="Midsize")
+Compact = which(cars_l$Type=="Compact")
+
+    par1 = dplyr::select(cars_l,7)
+    par2 = dplyr::select(cars_l,14)
+
+Small1 =  t(par1)[Small]
+Midsize1 =  t(par1)[Midsize]
+Compact1 =  t(par1)[Compact]
+Small2 =  t(par2)[Small]
+Midsize2 =  t(par2)[Midsize]
+Compact2 =  t(par2)[Compact] 
+
+mm1 = range(Small1,Midsize1,Compact1)
+mm2 = range(Small2,Midsize2,Compact2)
+
+dens2S=kde2d(Small1,Small2, lims=c(mm1,mm2))
+dens2M=kde2d(Midsize1,Midsize2, lims=c(mm1,mm2))
+dens2C=kde2d(Compact1,Compact2, lims=c(mm1,mm2))
+
+#Suma trzech gęstości
+s = length(Small1)
+m = length(Midsize1)
+c = length(Compact1)
+n = s+m+c
+
+#Konur
+contour(dens2S, xlim = c(mm1[1],mm1[2]), ylim = c(mm2[1],mm2[2]))
+title(c(names(par1),names(par2)))
+    legend("bottomright", legend=c("Small", "Midsize", "Compact"),
+            col=c("Black", "Blue", "Red"), lty=1, cex=1)
+contour(dens2M, add=T, col="blue")
+contour(dens2C, add=T, col="red")
+
+zerojedenS=ifelse((1-s/n)*dens2S$z > (1-m/n)*dens2M$z & (1-s/n)*dens2S$z > (1-c/n)*dens2C$z, 1, 0)
+contour(dens2S$x, dens2S$y, zerojedenS, add=T, lwd=1)
+
+zerojedenC=ifelse((1-c/n)*dens2C$z>(1-s/n)*dens2S$z & (1-c/n)*dens2C$z>(1-m/n)*dens2M$z, 1, 0)
+contour(dens2C$x, dens2C$y, zerojedenC, add=T,col="red", lwd=1)
+
+zerojedenM=ifelse((1-m/n)*dens2M$z>(1-s/n)*dens2S$z & (1-m/n)*dens2M$z>(1-c/n)*dens2C$z, 1, 0)
+contour(dens2M$x, dens2M$y, zerojedenM, add=T, col="blue", lwd=1)
+
+points(Small1, Small2, pch=19, cex=1)
+points(Midsize1, Midsize2, pch=19, col="blue", cex=1)
+points(Compact1, Compact2, pch=19, col="red", cex=1)
+```
+
+Row
+-----------------------------------------------------------------------
+### Pozostałe wykresy
+
+```{r fig4, out.width = '80%'}
+#2.1
+cars_l = as_tibble(Cars93)
+cars_l = dplyr::select(cars_l, c(3:8,12:15,17,19:25))
+len = ncol(cars_l)
+cars_l = na.delete(cars_l)
+
+Small = which(cars_l$Type=="Small")
+Midsize = which(cars_l$Type=="Midsize")
+Compact = which(cars_l$Type=="Compact")
+
+for (i in c(2:(len-1))){
+  for (j in c((i+1):len)) {
+    par1 = dplyr::select(cars_l,i)
+    par2 = dplyr::select(cars_l,j)
+    
+    Small1 =  t(par1)[Small]
+    Midsize1 =  t(par1)[Midsize]
+    Compact1 =  t(par1)[Compact]
+    Small2 =  t(par2)[Small]
+    Midsize2 =  t(par2)[Midsize]
+    Compact2 =  t(par2)[Compact]    
+    
+    mm1 = range(Small1,Midsize1,Compact1)
+    mm2 = range(Small2,Midsize2,Compact2)
+    
+    dens2S=kde2d(Small1,Small2, lims=c(mm1,mm2))
+    dens2M=kde2d(Midsize1,Midsize2, lims=c(mm1,mm2))
+    dens2C=kde2d(Compact1,Compact2, lims=c(mm1,mm2))
+    
+    #Suma trzech gęstości
+    dens=dens2S
+    s = length(Small1)
+    m = length(Midsize1)
+    c = length(Compact1)
+    n = s+m+c
+    #dens$z=l/n*dens2L$z+m/n*dens2M$z+s/n*dens2S$z
+    
+    
+    
+    #Konur
+    contour(dens2S, xlim = c(mm1[1],mm1[2]), ylim = c(mm2[1],mm2[2]))
+    title(c(names(par1),names(par2)))
+    contour(dens2M, add=T, col="blue")
+    contour(dens2C, add=T, col="red")
+    
+    
+    
+    zerojedenS=ifelse((1-s/n)*dens2S$z > (1-m/n)*dens2M$z & (1-s/n)*dens2S$z > (1-c/n)*dens2C$z, 1, 0)
+    contour(dens2S$x, dens2S$y, zerojedenS, add=T, lwd=1)
+    
+    #Pętla
+    liczba_zgodnych_2S=0
+    dim(dens2S$z)
+    dim(dens2M$z)
+    dim(dens2C$z)
+    
+    for (k in 1:25){
+      for (l in 1:25){
+        if(((s/n)*dens2S$z[l,k] > (m/n)*dens2M$z[l,k] & (s/n)*dens2S$z[l,k] > (c/n)*dens2C$z[l,k])) { 
+          liczba_zgodnych_2S=liczba_zgodnych_2S+1
+        }
+      }
+    }
+    
+    liczba_zgodnych_2M=0
+    dim(dens2S$z)
+    dim(dens2M$z)
+    dim(dens2C$z)
+    for (q in 1:25){
+      for (w in 1:25){
+        if(((m/n)*dens2M$z[w,q] > (s/n)*dens2S$z[w,q] & (m/n)*dens2M$z[w,q] > (c/n)*dens2C$z[w,q])) { 
+          liczba_zgodnych_2M=liczba_zgodnych_2M+1
+        }
+      }
+    }
+    
+    liczba_zgodnych_2C=0
+    dim(dens2S$z)
+    dim(dens2M$z)
+    dim(dens2C$z)
+    for (z in 1:25){
+      for (x in 1:25){
+        if(((c/n)*dens2C$z[x,z] > (s/n)*dens2S$z[x,z] & (c/n)*dens2C$z[x,z] > (m/n)*dens2M$z[x,z])) { 
+          liczba_zgodnych_2C=liczba_zgodnych_2C+1
+        }
+      }
+    }
+    
+    Ods_zg_2S=liczba_zgodnych_2S
+    Ods_zg_2M=liczba_zgodnych_2M
+    Ods_zg_2C=liczba_zgodnych_2C
+    Ods_zg=(Ods_zg_2M+Ods_zg_2C+Ods_zg_2S)
+    
+    
+    Wynik=(paste0("Total zgodnych ",Ods_zg))
+    
+    zerojedenC=ifelse((1-c/n)*dens2C$z>(1-s/n)*dens2S$z & (1-c/n)*dens2C$z>(1-m/n)*dens2M$z, 1, 0)
+    contour(dens2C$x, dens2C$y, zerojedenC, add=T,col="red", lwd=1)
+    
+    zerojedenM=ifelse((1-m/n)*dens2M$z>(1-s/n)*dens2S$z & (1-m/n)*dens2M$z>(1-c/n)*dens2C$z, 1, 0)
+    contour(dens2M$x, dens2M$y, zerojedenM, add=T, col="blue", lwd=1)
+    
+    
+    
+    points(Small1, Small2, pch=19, cex=1)
+    points(Midsize1, Midsize2, pch=19, col="blue", cex=1)
+    points(Compact1, Compact2, pch=19, col="red", cex=1)
+  }
+}
+```
+
+
+Testy normalności 
+=======================================================================
+Na podstawie testu Shapiro-Wilka na poziomie istotnosci 0,05 odrzucamy hipotezę o normalności rozkładów dla zmiennych: Min.Price, Price, Max.Price MPG.city, MPG.highway, EngineSize, Horsepower, Width.
+
+Row
+-----------------------------------------------------------------------
+
+```{r fig10, out.width = '25%'}
+shapiro.test(Min.Price)
+
+shapiro.test(Price)
+
+shapiro.test(Max.Price)
+
+shapiro.test(MPG.city)
+
+shapiro.test(MPG.highway)
+
+shapiro.test(EngineSize)
+```
+
+Row
+-----------------------------------------------------------------------
+
+```{r}
+shapiro.test(Horsepower)
+```
+
+```{r}
+shapiro.test(RPM)
+```
+
+```{r}
+shapiro.test(Rev.per.mile)
+```
+
+```{r}
+shapiro.test(Fuel.tank.capacity)
+```
+
+```{r}
+shapiro.test(Length)
+```
+
+```{r}
+shapiro.test(Wheelbase)
+```
+
+Row
+-----------------------------------------------------------------------
+
+```{r}
+shapiro.test(Width)
+```
+
+```{r}
+shapiro.test(Turn.circle)
+```
+
+```{r}
+shapiro.test(Rear.seat.room)
+```
+
+```{r}
+shapiro.test(Luggage.room)
+```
+
+```{r}
+shapiro.test(Weight)
+```
+
+Gęstość rozkładu normalnego
+=======================================================================
+Najlepszymi zmiennymi do klasyfikacji klas Small-Midsize-Compact okazała się para Wheelbase-Luggage.room.
+
+Row
+-----------------------------------------------------------------------
+###
+
+```{r fig6, out.width = '50%'}
+library(ggplot2)
+attach(Cars93)
+library(dplyr)
+library(Hmisc)
+library(MASS)
+library(misc3d)
+library(mixtools)
+
+cars_l = as_tibble(Cars93)
+cars_l = dplyr::select(cars_l, c(3:8,12:15,17,19:25))
+cars_l = dplyr::select(cars_l, c(1,9:13,15:18))
+
+len = ncol(cars_l)
+cars_l = na.delete(cars_l)
+
+Small = which(cars_l$Type=="Small")
+Midsize = which(cars_l$Type=="Midsize")
+Compact = which(cars_l$Type=="Compact")
+
+
+
+    par1 = dplyr::select(cars_l,6)
+    par2 = dplyr::select(cars_l,9)
+    
+    Small1 =  t(par1)[Small]
+    Midsize1 =  t(par1)[Midsize]
+    Compact1 =  t(par1)[Compact]
+    Small2 =  t(par2)[Small]
+    Midsize2 =  t(par2)[Midsize]
+    Compact2 =  t(par2)[Compact]
+    
+    # Range
+    mm1 = range(Small1, Midsize1, Compact1)
+    mm2 = range(Small2, Midsize2, Compact2)
+    
+  #Small
+    m1S=mean(Small1)
+    m2S=mean(Small2)
+    
+    mkowS = var(data.frame(Small1,Small2))
+    
+    #gęstość
+    dens2S=kde2d(Small1,Small2, lims=c(mm1,mm2))
+    
+    dS=list(x=dens2S$x,y=dens2S$y)
+    size = length(dens2S$x)
+    ZS=matrix(0,nrow=size,ncol=size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZS[i,j]=
+          dmvnorm(c(dS$x[i],dS$y[j]),mu=c(m1S,m2S),sigma=mkowS)
+      }
+    }
+    
+    dS=list(x=dens2S$x,y=dens2S$y,z=ZS)
+    
+  #Midsize
+    m1M=mean(Midsize1)
+    m2M=mean(Midsize2)
+    
+    mkowM = var(data.frame(Midsize1,Midsize2))
+    
+    #gęstość
+    dens2M=kde2d(Midsize1,Midsize2, lims=c(mm1,mm2))
+    
+    dM=list(x=dens2M$x,y=dens2M$y)
+    size = length(dens2M$x)
+    ZM=matrix(0,nrow=size,size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZM[i,j]=
+          dmvnorm(c(dM$x[i],dM$y[j]),mu=c(m1M,m2M),sigma=mkowM)
+      }
+    }
+    
+    dM=list(x=dens2M$x,y=dens2M$y,z=ZM)
+    
+  #Compact
+    m1C=mean(Compact1)
+    m2C=mean(Compact2)
+    
+    mkowC = var(data.frame(Compact1,Compact2))
+    
+    #gęstość
+    dens2C=kde2d(Compact1,Compact2, lims=c(mm1,mm2))
+    
+    dC=list(x=dens2C$x,y=dens2C$y)
+    size = length(dens2C$x)
+    ZC=matrix(0,nrow=size,size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZC[i,j]=
+          dmvnorm(c(dC$x[i],dC$y[j]),mu=c(m1C,m2C),sigma=mkowC)
+      }
+    }
+    
+    dC=list(x=dens2C$x,y=dens2C$y,z=ZC)
+    
+    
+    # wagi
+    s = length(Small1)
+    m = length(Midsize1)
+    c = length(Compact1)
+    n = s+m+c
+    
+    #Wyznaczamy obszary klasyfikacji
+    contour(dS, xlim = c(mm1[1],mm1[2]), ylim = c(mm2[1],mm2[2]))
+    title(c(names(par1),names(par2)))
+    legend("topleft", legend=c("Small", "Midsize", "Compact"),
+            col=c("Black", "Blue", "Red"), lty=1, cex=1)
+    contour(dM, add=T, col="blue")
+    contour(dC, add=T, col="red")
+    
+    zerojedenS=ifelse(s/n*dS$z > m/n*dM$z & s/n*dS$z > c/n*dC$z, 1, 0)
+    contour(dS$x, dS$y, zerojedenS, add=T, lwd = 0.5)
+    
+    zerojedenM=ifelse(m/n*dM$z>s/n*dS$z & m/n*dM$z>c/n*dC$z, 1, 0)
+    contour(dM$x, dM$y, zerojedenM, col="blue", add=T, lwd = 0.5)
+    
+    zerojedenC=ifelse(c/n*dC$z>s/n*dS$z & c/n*dC$z>m/n*dM$z, 1, 0)
+    contour(dC$x, dC$y, zerojedenC, col="red", add=T, lwd = 0.5)
+    
+    points(Small1, Small2,pch=19, cex=1)
+    points(Midsize1, Midsize2,col="blue",pch=19, cex=1)
+    points(Compact1, Compact2, col="red",pch=19, cex=1)
+
+```
+
+Row
+-----------------------------------------------------------------------
+### Pozostałe wykresy
+
+```{r, fig7, out.width = '80%'}
+library(ggplot2)
+attach(Cars93)
+library(dplyr)
+library(Hmisc)
+library(MASS)
+library(misc3d)
+library(mixtools)
+
+cars_l = as_tibble(Cars93)
+cars_l = dplyr::select(cars_l, c(3:8,12:15,17,19:25))
+cars_l = dplyr::select(cars_l, c(1,9:13,15:18))
+
+len = ncol(cars_l)
+cars_l = na.delete(cars_l)
+
+Small = which(cars_l$Type=="Small")
+Midsize = which(cars_l$Type=="Midsize")
+Compact = which(cars_l$Type=="Compact")
+
+for (q in c(2:(len-1))){
+  for (w in c((q+1):len)) {
+    par1 = dplyr::select(cars_l,q)
+    par2 = dplyr::select(cars_l,w)
+    
+    Small1 =  t(par1)[Small]
+    Midsize1 =  t(par1)[Midsize]
+    Compact1 =  t(par1)[Compact]
+    Small2 =  t(par2)[Small]
+    Midsize2 =  t(par2)[Midsize]
+    Compact2 =  t(par2)[Compact]
+    
+    # Range
+    mm1 = range(Small1, Midsize1, Compact1)
+    mm2 = range(Small2, Midsize2, Compact2)
+    
+  #Small
+    m1S=mean(Small1)
+    m2S=mean(Small2)
+    
+    mkowS = var(data.frame(Small1,Small2))
+    
+    #gęstość
+    dens2S=kde2d(Small1,Small2, lims=c(mm1,mm2))
+    
+    dS=list(x=dens2S$x,y=dens2S$y)
+    size = length(dens2S$x)
+    ZS=matrix(0,nrow=size,ncol=size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZS[i,j]=
+          dmvnorm(c(dS$x[i],dS$y[j]),mu=c(m1S,m2S),sigma=mkowS)
+      }
+    }
+    
+    dS=list(x=dens2S$x,y=dens2S$y,z=ZS)
+    
+  #Midsize
+    m1M=mean(Midsize1)
+    m2M=mean(Midsize2)
+    
+    mkowM = var(data.frame(Midsize1,Midsize2))
+    
+    #gęstość
+    dens2M=kde2d(Midsize1,Midsize2, lims=c(mm1,mm2))
+    
+    dM=list(x=dens2M$x,y=dens2M$y)
+    size = length(dens2M$x)
+    ZM=matrix(0,nrow=size,size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZM[i,j]=
+          dmvnorm(c(dM$x[i],dM$y[j]),mu=c(m1M,m2M),sigma=mkowM)
+      }
+    }
+    
+    dM=list(x=dens2M$x,y=dens2M$y,z=ZM)
+    
+  #Compact
+    m1C=mean(Compact1)
+    m2C=mean(Compact2)
+    
+    mkowC = var(data.frame(Compact1,Compact2))
+    
+    #gęstość
+    dens2C=kde2d(Compact1,Compact2, lims=c(mm1,mm2))
+    
+    dC=list(x=dens2C$x,y=dens2C$y)
+    size = length(dens2C$x)
+    ZC=matrix(0,nrow=size,size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZC[i,j]=
+          dmvnorm(c(dC$x[i],dC$y[j]),mu=c(m1C,m2C),sigma=mkowC)
+      }
+    }
+    
+    dC=list(x=dens2C$x,y=dens2C$y,z=ZC)
+    
+    
+    # wagi
+    s = length(Small1)
+    m = length(Midsize1)
+    c = length(Compact1)
+    n = s+m+c
+    
+    #Wyznaczamy obszary klasyfikacji
+    contour(dS, xlim = c(mm1[1],mm1[2]), ylim = c(mm2[1],mm2[2]))
+    title(c(names(par1),names(par2)))
+    contour(dM, add=T, col="blue")
+    contour(dC, add=T, col="red")
+    
+    zerojedenS=ifelse(s/n*dS$z > m/n*dM$z & s/n*dS$z > c/n*dC$z, 1, 0)
+    contour(dS$x, dS$y, zerojedenS, add=T, lwd = 0.5)
+    
+    zerojedenM=ifelse(m/n*dM$z>s/n*dS$z & m/n*dM$z>c/n*dC$z, 1, 0)
+    contour(dM$x, dM$y, zerojedenM, add=T, lwd = 0.5)
+    
+    zerojedenC=ifelse(c/n*dC$z>s/n*dS$z & c/n*dC$z>m/n*dM$z, 1, 0)
+    contour(dC$x, dC$y, zerojedenC, add=T, lwd = 0.5)
+    
+    points(Small1, Small2,pch=19, cex=1)
+    points(Midsize1, Midsize2,col="blue",pch=19, cex=1)
+    points(Compact1, Compact2, col="red",pch=19, cex=1)
+
+  }
+}
+```
+
+Gęstość mieszaniny
+=======================================================================
+Najlepszymi zmiennymi do klasyfikacji klas Small-Midsize-Compact okazała się para Fuel.tank.capacity-Length
+
+Row
+-----------------------------------------------------------------------
+###
+
+```{r, results='hide',message=FALSE,warning=FALSE, out.width = '50%'}
+cars_l = as_tibble(Cars93)
+cars_l = dplyr::select(cars_l, c(3:8,12:15,17,19:25))
+cars_l = dplyr::select(cars_l, c(1,9:13,15:16,18))
+
+len = ncol(cars_l)
+cars_l = na.delete(cars_l)
+
+Small = which(cars_l$Type=="Small")
+Midsize = which(cars_l$Type=="Midsize")
+Compact = which(cars_l$Type=="Compact")
+
+par1 = dplyr::select(cars_l,4)
+par2 = dplyr::select(cars_l,5)
+    
+    Small1 =  t(par1)[Small]
+    Midsize1 =  t(par1)[Midsize]
+    Compact1 =  t(par1)[Compact]
+    Small2 =  t(par2)[Small]
+    Midsize2 =  t(par2)[Midsize]
+    Compact2 =  t(par2)[Compact]
+    
+    # Range
+    mm1 = range(Small1, Midsize1, Compact1)
+    mm2 = range(Small2, Midsize2, Compact2)
+    
+  ## Small
+      
+    boolFalse<-F
+    while(boolFalse==F)
+    {
+      tryCatch({
+        parS=mvnormalmixEM(cbind(Small1,Small2))
+        boolFalse<-T
+      },error=function(parS){
+      },finally={})
+    }
+    
+    dens2S=kde2d(Small1,Small2, lims=c(mm1,mm2))
+    dS=list(x=dens2S$x,y=dens2S$y)
+    size = length(dens2S$x)
+    ZS=matrix(0,nrow=size,ncol=size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZS[i,j]=
+          parS$lambda[1]*dmvnorm(c(dS$x[i],dS$y[j]),mu=parS$mu[[1]],sigma=parS$sigma[[1]])+
+          parS$lambda[2]*dmvnorm(c(dS$x[i],dS$y[j]),mu=parS$mu[[2]],sigma=parS$sigma[[2]])
+      }
+    }
+    dS=list(x=dens2S$x,y=dens2S$y,z=ZS)
+    
+  ## Midsize
+    
+    boolFalse<-F
+    while(boolFalse==F)
+    {
+      tryCatch({
+        parM=mvnormalmixEM(cbind(Midsize1,Midsize2))
+        boolFalse<-T
+      },error=function(parM){
+      },finally={})
+    }
+    
+    dens2M=kde2d(Midsize1,Midsize2, lims=c(mm1,mm2))
+    dM=list(x=dens2M$x,y=dens2M$y)
+    size = length(dens2M$x)
+    ZM=matrix(0,nrow=size,ncol=size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZM[i,j]=
+          parM$lambda[1]*dmvnorm(c(dM$x[i],dM$y[j]),mu=parM$mu[[1]],sigma=parM$sigma[[1]])+
+          parM$lambda[2]*dmvnorm(c(dM$x[i],dM$y[j]),mu=parM$mu[[2]],sigma=parM$sigma[[2]])
+      }
+    }
+    dM=list(x=dens2M$x,y=dens2M$y,z=ZM)
+    
+  ## Compact
+    boolFalse<-F
+    while(boolFalse==F)
+    {
+      tryCatch({
+        parC=mvnormalmixEM(cbind(Compact1,Compact2))
+        boolFalse<-T
+      },error=function(parC){
+      },finally={})
+    }
+    
+    dens2C=kde2d(Compact1,Compact2, lims=c(mm1,mm2))
+    dC=list(x=dens2S$x,y=dens2S$y)
+    size = length(dens2C$x)
+    ZC=matrix(0,nrow=size,ncol=size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZC[i,j]=
+          parC$lambda[1]*dmvnorm(c(dC$x[i],dC$y[j]),mu=parC$mu[[1]],sigma=parC$sigma[[1]])+
+          parC$lambda[2]*dmvnorm(c(dC$x[i],dC$y[j]),mu=parC$mu[[2]],sigma=parC$sigma[[2]])
+      }
+    }
+    dC=list(x=dens2C$x,y=dens2C$y,z=ZC)
+
+    # suma gestosci
+    s= length(Small1)
+    m = length(Midsize1)
+    c = length(Compact1)
+    n = s+m+c
+    
+    #Wyznaczamy obszary klasyfikacji
+    contour(dS, xlim = c(mm1[1],mm1[2]), ylim = c(mm2[1],mm2[2]))
+    title(c(names(par1),names(par2)))
+        legend("topleft", legend=c("Small", "Midsize", "Compact"),
+            col=c("Black", "Blue", "Red"), lty=1, cex=1)
+    contour(dM, add=T, col="blue")
+    contour(dC, add=T, col="red")
+    
+    zerojedenS=ifelse(s/n*dS$z > m/n*dM$z & s/n*dS$z > c/n*dC$z, 1, 0)
+    contour(dS$x, dS$y, zerojedenS, add=T, lwd = 0.5)
+    
+    zerojedenM=ifelse(m/n*dM$z>c/n*dC$z & m/n*dM$z>s/n*dS$z, 1, 0)
+    contour(dM$x, dM$y, zerojedenM, add=T, col="Blue", lwd = 0.5)
+    
+    zerojedenC=ifelse(c/n*dC$z>m/n*dM$z & c/n*dC$z>s/n*dS$z, 1, 0)
+    contour(dC$x, dC$y, zerojedenC, add=T, col="Red", lwd = 0.5)
+    
+    points(Small1, Small2,pch=19, cex=1)
+    points(Midsize1, Midsize2,col="blue",pch=19, cex=1)
+    points(Compact1, Compact2, col="red",pch=19, cex=1)
+ 
+```
+
+Row
+-----------------------------------------------------------------------
+### Pozostałe wykresy
+
+```{r, results='hide',message=FALSE,warning=FALSE, out.width = '80%'}
+cars_l = as_tibble(Cars93)
+cars_l = dplyr::select(cars_l, c(3:8,12:15,17,19:25))
+cars_l = dplyr::select(cars_l, c(1,9:13,15:16,18))
+
+len = ncol(cars_l)
+cars_l = na.delete(cars_l)
+
+Small = which(cars_l$Type=="Small")
+Midsize = which(cars_l$Type=="Midsize")
+Compact = which(cars_l$Type=="Compact")
+
+for (q in c(2:(len-1))){
+  for (w in c((q+1):len)) {
+    par1 = dplyr::select(cars_l,q)
+    par2 = dplyr::select(cars_l,w)
+    
+    Small1 =  t(par1)[Small]
+    Midsize1 =  t(par1)[Midsize]
+    Compact1 =  t(par1)[Compact]
+    Small2 =  t(par2)[Small]
+    Midsize2 =  t(par2)[Midsize]
+    Compact2 =  t(par2)[Compact]
+    
+    # Range
+    mm1 = range(Small1, Midsize1, Compact1)
+    mm2 = range(Small2, Midsize2, Compact2)
+    
+  ## Small
+      
+    boolFalse<-F
+    while(boolFalse==F)
+    {
+      tryCatch({
+        parS=mvnormalmixEM(cbind(Small1,Small2), maxit = 15)
+        boolFalse<-T
+      },error=function(parS){
+      },finally={})
+    }
+    
+    dens2S=kde2d(Small1,Small2, lims=c(mm1,mm2))
+    dS=list(x=dens2S$x,y=dens2S$y)
+    size = length(dens2S$x)
+    ZS=matrix(0,nrow=size,ncol=size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZS[i,j]=
+          parS$lambda[1]*dmvnorm(c(dS$x[i],dS$y[j]),mu=parS$mu[[1]],sigma=parS$sigma[[1]])+
+          parS$lambda[2]*dmvnorm(c(dS$x[i],dS$y[j]),mu=parS$mu[[2]],sigma=parS$sigma[[2]])
+      }
+    }
+    dS=list(x=dens2S$x,y=dens2S$y,z=ZS)
+    
+  ## Midsize
+    
+    boolFalse<-F
+    while(boolFalse==F)
+    {
+      tryCatch({
+        parM=mvnormalmixEM(cbind(Midsize1,Midsize2), maxit = 15)
+        boolFalse<-T
+      },error=function(parM){
+      },finally={})
+    }
+    
+    dens2M=kde2d(Midsize1,Midsize2, lims=c(mm1,mm2))
+    dM=list(x=dens2M$x,y=dens2M$y)
+    size = length(dens2M$x)
+    ZM=matrix(0,nrow=size,ncol=size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZM[i,j]=
+          parM$lambda[1]*dmvnorm(c(dM$x[i],dM$y[j]),mu=parM$mu[[1]],sigma=parM$sigma[[1]])+
+          parM$lambda[2]*dmvnorm(c(dM$x[i],dM$y[j]),mu=parM$mu[[2]],sigma=parM$sigma[[2]])
+      }
+    }
+    dM=list(x=dens2M$x,y=dens2M$y,z=ZM)
+    
+  ## Compact
+    boolFalse<-F
+    while(boolFalse==F)
+    {
+      tryCatch({
+        parC=mvnormalmixEM(cbind(Compact1,Compact2), maxit = 15)
+        boolFalse<-T
+      },error=function(parC){
+      },finally={})
+    }
+    
+    dens2C=kde2d(Compact1,Compact2, lims=c(mm1,mm2))
+    dC=list(x=dens2S$x,y=dens2S$y)
+    size = length(dens2C$x)
+    ZC=matrix(0,nrow=size,ncol=size)
+    
+    for (i in 1:size){
+      for (j in 1:size){
+        ZC[i,j]=
+          parC$lambda[1]*dmvnorm(c(dC$x[i],dC$y[j]),mu=parC$mu[[1]],sigma=parC$sigma[[1]])+
+          parC$lambda[2]*dmvnorm(c(dC$x[i],dC$y[j]),mu=parC$mu[[2]],sigma=parC$sigma[[2]])
+      }
+    }
+    dC=list(x=dens2C$x,y=dens2C$y,z=ZC)
+
+    # suma gestosci
+    s= length(Small1)
+    m = length(Midsize1)
+    c = length(Compact1)
+    n = s+m+c
+    
+    #Wyznaczamy obszary klasyfikacji
+    contour(dS, xlim = c(mm1[1],mm1[2]), ylim = c(mm2[1],mm2[2]))
+    title(c(names(par1),names(par2)))
+    contour(dM, add=T, col="blue")
+    contour(dC, add=T, col="red")
+    
+    zerojedenS=ifelse(s/n*dS$z > m/n*dM$z & s/n*dS$z > c/n*dC$z, 1, 0)
+    contour(dS$x, dS$y, zerojedenS, add=T, lwd = 0.5)
+    
+    zerojedenM=ifelse(m/n*dM$z>c/n*dC$z & m/n*dM$z>s/n*dS$z, 1, 0)
+    contour(dM$x, dM$y, zerojedenM, add=T, col="Blue", lwd = 0.5)
+    
+    zerojedenC=ifelse(c/n*dC$z>m/n*dM$z & c/n*dC$z>s/n*dS$z, 1, 0)
+    contour(dC$x, dC$y, zerojedenC, add=T, col="Red", lwd = 0.5)
+    
+    points(Small1, Small2,pch=19, cex=1)
+    points(Midsize1, Midsize2,col="blue",pch=19, cex=1)
+    points(Compact1, Compact2, col="red",pch=19, cex=1)
+  }
+}
+
+```

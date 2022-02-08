@@ -1,0 +1,92 @@
+MATCH ()-[e]->() DELETE e;
+MATCH (v) DELETE v;
+
+CREATE (:Type {name: 'Alcohol'});
+CREATE (:Type {name: 'Taste'});
+
+CREATE (:Taste {name: 'Refreshing'});
+CREATE (:Taste {name: 'Dry'});
+CREATE (:Taste {name: 'Sweet'});
+CREATE (:Taste {name: 'Bitter'});
+
+CREATE (:Alcohol {name: 'Bourbon'});
+CREATE (:Alcohol {name: 'Whiskey'});
+CREATE (:Alcohol {name: 'Rum'});
+CREATE (:Alcohol {name: 'Gin'});
+CREATE (:Alcohol {name: 'Vodka'});
+CREATE (:Alcohol {name: 'Tequila'});
+
+CREATE (:Cocktail {name: 'Mint Julep'});
+CREATE (:Cocktail {name: 'Manhattan'});
+CREATE (:Cocktail {name: 'Hot Toddy'});
+CREATE (:Cocktail {name: 'Old Fashion'});
+CREATE (:Cocktail {name: 'Brooklyn'});
+CREATE (:Cocktail {name: 'Whiskey Sour'});
+CREATE (:Cocktail {name: 'Daiquiri'});
+CREATE (:Cocktail {name: 'Mohito'});
+CREATE (:Cocktail {name: 'Cuba Libre'});
+CREATE (:Cocktail {name: 'Gin&Tonic'});
+CREATE (:Cocktail {name: 'Tom Collins'});
+CREATE (:Cocktail {name: 'Negroni'});
+CREATE (:Cocktail {name: 'Vodka Martini'});
+CREATE (:Cocktail {name: 'Cosmopolitan'});
+CREATE (:Cocktail {name: 'Black Russian'});
+CREATE (:Cocktail {name: 'Tequila Sunrise'});
+CREATE (:Cocktail {name: 'Margarita'});
+CREATE (:Cocktail {name: 'Paloma'});
+
+MATCH (from:Type), (to:Taste) WHERE from.name = 'Taste' AND to.name = 'Refreshing' CREATE (from)-[:type {id: 'Taste_Refreshing'}]->(to);
+MATCH (from:Type), (to:Taste) WHERE from.name = 'Taste' AND to.name = 'Dry' CREATE (from)-[:type {id: 'Taste_Dry'}]->(to);
+MATCH (from:Type), (to:Taste) WHERE from.name = 'Taste' AND to.name = 'Sweet' CREATE (from)-[:type {id: 'Taste_Sweet'}]->(to);
+MATCH (from:Type), (to:Taste) WHERE from.name = 'Taste' AND to.name = 'Bitter' CREATE (from)-[:type {id: 'Taste_Bitter'}]->(to);
+
+MATCH (from:Type), (to:Alcohol) WHERE from.name = 'Alcohol' AND to.name = 'Bourbon' CREATE (from)-[:type {id: 'Alcohol_Bourbon'}]->(to);
+MATCH (from:Type), (to:Alcohol) WHERE from.name = 'Alcohol' AND to.name = 'Whiskey' CREATE (from)-[:type {id: 'Alcohol_Whiskey'}]->(to);
+MATCH (from:Type), (to:Alcohol) WHERE from.name = 'Alcohol' AND to.name = 'Rum' CREATE (from)-[:type {id: 'Alcohol_Rum'}]->(to);
+MATCH (from:Type), (to:Alcohol) WHERE from.name = 'Alcohol' AND to.name = 'Gin' CREATE (from)-[:type {id: 'Alcohol_Gin'}]->(to);
+MATCH (from:Type), (to:Alcohol) WHERE from.name = 'Alcohol' AND to.name = 'Vodka' CREATE (from)-[:type {id: 'Alcohol_Vodka'}]->(to);
+MATCH (from:Type), (to:Alcohol) WHERE from.name = 'Alcohol' AND to.name = 'Tequila' CREATE (from)-[:type {id: 'Alcohol_Tequila'}]->(to);
+
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Bourbon' AND to.name = 'Mint Julep' CREATE (from)-[:ingredient {id: 'Bourbon_Mint Julep'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Bourbon' AND to.name = 'Manhattan' CREATE (from)-[:ingredient {id: 'Bourbon_Manhattan'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Bourbon' AND to.name = 'Hot Toddy' CREATE (from)-[:ingredient {id: 'Bourbon_Hot Toddy'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Whiskey' AND to.name = 'Old Fashion' CREATE (from)-[:ingredient {id: 'Whiskey_Old Fashion'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Whiskey' AND to.name = 'Brooklyn' CREATE (from)-[:ingredient {id: 'Whiskey_Brooklyn'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Whiskey' AND to.name = 'Whiskey Sour' CREATE (from)-[:ingredient {id: 'Whiskey_Whiskey Sour'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Rum' AND to.name = 'Daiquiri' CREATE (from)-[:ingredient {id: 'Rum_Daiquiri'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Rum' AND to.name = 'Mohito' CREATE (from)-[:ingredient {id: 'Rum_Mohito'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Rum' AND to.name = 'Cuba Libre' CREATE (from)-[:ingredient {id: 'Rum_Cuba Libre'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Gin' AND to.name = 'Gin&Tonic' CREATE (from)-[:ingredient {id: 'Gin_Gin&Tonic'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Gin' AND to.name = 'Tom Collins' CREATE (from)-[:ingredient {id: 'Gin_Tom Collins'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Gin' AND to.name = 'Negroni' CREATE (from)-[:ingredient {id: 'Gin_Negroni'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Vodka' AND to.name = 'Vodka Martini' CREATE (from)-[:ingredient {id: 'Vodka_Vodka Martini'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Vodka' AND to.name = 'Cosmopolitan' CREATE (from)-[:ingredient {id: 'Vodka_Cosmopolitan'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Vodka' AND to.name = 'Black Russian' CREATE (from)-[:ingredient {id: 'Vodka_Black Russian'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Tequila' AND to.name = 'Tequila Sunrise' CREATE (from)-[:ingredient {id: 'Tequila_Tequila Sunrise'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Tequila' AND to.name = 'Margarita' CREATE (from)-[:ingredient {id: 'Tequila_Margarita'}]->(to);
+MATCH (from:Alcohol), (to:Cocktail) WHERE from.name = 'Tequila' AND to.name = 'Paloma' CREATE (from)-[:ingredient {id: 'Tequila_Paloma'}]->(to);
+
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Refreshing' AND to.name = 'Mint Julep' CREATE (from)-[:ingredient {id: 'Refreshing_Mint Julep'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Dry' AND to.name = 'Manhattan' CREATE (from)-[:ingredient {id: 'Dry_Manhattan'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Bitter' AND to.name = 'Hot Toddy' CREATE (from)-[:ingredient {id: 'BBitter_Hot Toddy'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Dry' AND to.name = 'Old Fashion' CREATE (from)-[:ingredient {id: 'Dry_Old Fashion'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Bitter' AND to.name = 'Old Fashion' CREATE (from)-[:ingredient {id: 'Bitter_Old Fashion'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Bitter' AND to.name = 'Brooklyn' CREATE (from)-[:ingredient {id: 'Bitter_Brooklyn'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Dry' AND to.name = 'Brooklyn' CREATE (from)-[:ingredient {id: 'Dry_Brooklyn'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Refreshing' AND to.name = 'Whiskey Sour' CREATE (from)-[:ingredient {id: 'Refreshing_Whiskey Sour'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Bitter' AND to.name = 'Whiskey Sour' CREATE (from)-[:ingredient {id: 'Bitter_Whiskey Sour'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Refreshing' AND to.name = 'Daiquiri' CREATE (from)-[:ingredient {id: 'Refreshing_Daiquiri'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Refreshing' AND to.name = 'Mohito' CREATE (from)-[:ingredient {id: 'Refreshing_Mohito'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Dry' AND to.name = 'Cuba Libre' CREATE (from)-[:ingredient {id: 'Dry_Cuba Libre'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Refreshing' AND to.name = 'Gin&Tonic' CREATE (from)-[:ingredient {id: 'Refreshing_Gin&Tonic'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Bitter' AND to.name = 'Gin&Tonic' CREATE (from)-[:ingredient {id: 'Bitter_Gin&Tonic'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Refreshing' AND to.name = 'Tom Collins' CREATE (from)-[:ingredient {id: 'Refreshing_Tom Collins'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Dry' AND to.name = 'Negroni' CREATE (from)-[:ingredient {id: 'Dry_Negroni'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Bitter' AND to.name = 'Negroni' CREATE (from)-[:ingredient {id: 'Bitter_Negroni'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Dry' AND to.name = 'Vodka Martini' CREATE (from)-[:ingredient {id: 'Dry_Vodka Martini'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Sweet' AND to.name = 'Cosmopolitan' CREATE (from)-[:ingredient {id: 'Sweet_Cosmopolitan'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Dry' AND to.name = 'Black Russian' CREATE (from)-[:ingredient {id: 'Dry_Black Russian'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Refreshing' AND to.name = 'Tequila Sunrise' CREATE (from)-[:ingredient {id: 'Refreshing_Tequila Sunrise'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Sweet' AND to.name = 'Tequila Sunrise' CREATE (from)-[:ingredient {id: 'Sweet_Tequila Sunrise'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Refreshing' AND to.name = 'Margarita' CREATE (from)-[:ingredient {id: 'Refreshing_Margarita'}]->(to);
+MATCH (from:Taste), (to:Cocktail) WHERE from.name = 'Dry' AND to.name = 'Paloma' CREATE (from)-[:ingredient {id: 'Dry_Paloma'}]->(to);

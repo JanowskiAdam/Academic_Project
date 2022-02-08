@@ -1,0 +1,74 @@
+---
+title: "Project geostatystyka"
+author: "Adam Janowski"
+date: "6/25/2021"
+output: html_document
+---
+
+```{r echo = TRUE, warning=FALSE, message=FALSE, results = 'hide'}
+library(raster)
+library(osmdata)
+library(rgdal)
+library(sf)
+library(raster)
+library(dplyr)
+library(spData)
+library(spDataLarge)
+library(sp)
+
+# Pobranie hipsometryczna mapa rastrowej Polski
+polska_rast=raster::getData('alt', country='POL', download= TRUE)
+
+# Pobranie granic Parku Krajobrazowego Międzyrzecza Warty i Widawki
+Miedzyrzecze = getbb(
+  place_name = 'Park Krajobrazowy Międzyrzecza Warty i Widawki',
+  display_name_contains = NULL,
+  format_out = "polygon",
+  base_url = "https://nominatim.openstreetmap.org",
+  featuretype = "protected_area",
+  limit = 1,
+  silent = TRUE
+)
+
+# Transformacja granic do formatu wielokątów przestrzennych 
+p = Polygon(Miedzyrzecze)
+ps = Polygons(list(p),1)
+SP_Miedzyrzecze = SpatialPolygons(list(ps))
+
+# Przycięcie hipsometrycznej mapy rastrowej Polski(alt) do obszaru parku
+polska_cropped = crop(polska_rast, SP_Miedzyrzecze)
+
+# Metoda Kringu
+polska_cropped.krigged = disaggregate(polska_cropped, fact=40, method='bilinear')
+
+# Pobranie hipsometrycznej mapy rastrowej kafelka SRTM
+Miedzyrzecze_srtm=getData('SRTM', lon=18, lat=51)
+
+# Przycięcie hipsometrycznej mapy rastrowej kafelka SRTM do obszaru parku
+srtm_cropped = crop(Miedzyrzecze_srtm, SP_Miedzyrzecze)
+```
+
+### Porównanie map Parku Krajobrazowego Międzyrzecza Warty i Widawki
+
+```{r}
+
+par(mfrow=c(1,3))
+
+# Hipsometryczna mapa rastrowa obszaru parku argumentem Alt
+plot(polska_cropped, col=terrain.colors(10))
+plot(SP_Miedzyrzecze, add=TRUE)
+title(main = 'argument Alt')
+
+# Hipsometryczna mapa rastrowa obszaru parku argumentem Alt
+plot(polska_cropped.krigged,col=terrain.colors(10))
+plot(SP_Miedzyrzecze, add=TRUE)
+title(main = 'metoda Kringu')
+
+# Hipsometryczna mapa rastrowa obszaru parku argumentem SRTM
+plot(srtm_cropped, col=terrain.colors(10))
+plot(SP_Miedzyrzecze, add=TRUE)
+title(main = 'argument SRTM')
+```
+
+## Wnioski:
+#### Widoczna jest różnica w rozdzielczości między mapą utworzoną ze źródła "alt" w porównaniu z dokładnym odpowiednikiem SRTM nawet po wykonaniu metody Kringu

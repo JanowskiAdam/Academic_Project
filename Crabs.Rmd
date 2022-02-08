@@ -1,0 +1,581 @@
+---
+title: "Crabs"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    source_code: embed
+---
+
+```{r setup, include=FALSE}
+library(ggplot2)
+library(plotly)
+library(plyr)
+library(flexdashboard)
+library(mixtools)
+
+```
+
+Estymator Jądrowy Gęstości
+=======================================================================
+Używając metody estymatora jądra gęstości, spośród 3 zmiennych CW, BD, RW  najlepiej płeć jak i gatunek klasyfikuje zmienna RW.
+
+Row
+-----------------------------------------------------------------------
+
+### Kraby podzielowe wg zmiennej CW Orange-Blue
+```{r CW O/B JG}
+library(MASS)
+attach(crabs)
+
+d_CW_B=density(CW[sp=="B"],bw = "SJ") #Blue
+d_CW_O=density(CW[sp=="O"],bw = "SJ") #Orange
+
+#Punkt przecięcia gęstości dla klasyfikacji względem koloru na podstawie zmiennej CW
+index=which(d_CW_B$x<39 & d_CW_B$x>35.5)
+m=min(sort(abs(d_CW_B$y-d_CW_O$y)[index]))
+index_min=which(abs(d_CW_B$y-d_CW_O$y)[index]==m)
+index_Min=index[index_min]
+P1=d_CW_B$x[index_Min]
+
+indexB=which(sp=="B")
+indexCW_B=which((sp=="B")&(CW<P1))
+PoprawneCW_B=sum(complete.cases(indexCW_B))
+indexO=which(sp=="O")
+indexCW_O=which((sp=="O")&(CW>P1))
+PoprawneCW_O=sum(complete.cases(indexCW_O))
+
+PoprawneCW_Sp=(PoprawneCW_B+PoprawneCW_O)/sum(complete.cases(crabs))*100
+Wynik=(paste0("Poprawność na poziomie ", PoprawneCW_Sp,"%"))
+
+plot(d_CW_B,lwd=2, col="Blue",ylim=c(0,0.05), xlab="CW", main=Wynik)
+lines(d_CW_O,lwd=2, col="Orange")
+legend("topright", legend=c("Orange", "Blue"),
+            col=c("Orange", "Blue"), lty=1, cex=1)
+```
+
+### Kraby podzielowe wg zmiennej CW Female-Male
+```{r CW F/M JG}
+#### Płeć względem CW 55.5 ####
+d_CW_M=density(crabs$CW[crabs$sex=="M"],bw = "SJ") #Male
+d_CW_F=density(crabs$CW[crabs$sex=="F"],bw = "SJ") #Female
+
+#Punkt przecięcia gęstości dla klasyfikacji względem koloru na podstawie zmiennej CW
+index=which(d_CW_M$x<41 & d_CW_M$x>40)
+m=min(sort(abs(d_CW_M$y-d_CW_F$y)[index]))
+index_min=which(abs(d_CW_M$y-d_CW_F$y)[index]==m)
+index_Min=index[index_min]
+P1=d_CW_M$x[index_Min]
+iloscM = length(which(CW[sex=="M"]>=P1))
+iloscF = length(which(CW[sex=="F"]<P1))
+#Odsetek poprawnie sklasyfikownych Male za pomocą zmiennej CW
+indexM=which(sex=="M")
+indexCW_M=which((sex=="M")&(crabs$CW>=d_CW_M$x[index_Min]))
+PoprawneCW_M=sum(complete.cases(indexCW_M))
+#Odestek poprawnie sklasyfikowanych Female za pomocą zmiennej CW
+indexF=which(sex=="F")
+indexCW_F=which((sex=="F")&(crabs$CW<d_CW_M$x[index_Min]))
+PoprawneCW_F=sum(complete.cases(indexCW_F))
+#Poprawność klasyfikacji Sex za pomocą zmiennej CW 
+PoprawneCW_Sex=(PoprawneCW_M+PoprawneCW_F)/sum(complete.cases(crabs))*100
+
+Wynik=(paste0("Poprawność na poziomie ", PoprawneCW_Sex,"%"))
+
+plot(d_CW_M,lwd=2, col="Green", xlab="CW",main=Wynik)
+lines(d_CW_F,lwd=2, col="Red")
+legend("topright", legend=c("Male", "Female"),
+            col=c("Green", "Red"), lty=1, cex=1)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Kraby podzielowe wg zmiennej BD Orange-Blue
+```{r BD O/B JG}
+######## Kolor względem BD 64.5 ####
+d_BD_B=density(BD[sp=="B"],bw = "SJ") #Blue
+d_BD_O=density(BD[sp=="O"],bw = "SJ") #Orange
+
+
+
+#Punkt przecięcia gęstości dla klasyfikacji względem koloru na podstawie zmiennej BD
+index=which(d_BD_B$x<14 & d_BD_B$x>12)
+m=min(sort(abs(d_BD_B$y-d_BD_O$y)[index]))
+index_min=which(abs(d_BD_B$y-d_BD_O$y)[index]==m)
+index_Min=index[index_min]
+P1=d_BD_B$x[index_Min]
+
+#Odsetek poprawnie sklasyfikownych Blue za pomocą zmiennej BD
+indexB=which(sp=="B")
+indexBD_B=which((sp=="B")&(BD<=P1))
+PoprawneBD_B=sum(complete.cases(indexBD_B))
+#Odestek poprawnie sklasyfikowanych Orange za pomocą zmiennej BD
+indexO=which(sp=="O")
+indexBD_O=which((sp=="O")&(BD>P1))
+PoprawneBD_O=sum(complete.cases(indexBD_O))
+
+PoprawneBD_Sp=(PoprawneBD_B+PoprawneBD_O)/sum(complete.cases(crabs))*100
+Wynik=(paste0("Poprawność na poziomie ", PoprawneBD_Sp,"%"))
+
+plot(d_BD_B,lwd=2,ylim=c(0,0.12), col="Blue",xlab="BD",main=Wynik)
+lines(d_BD_O,lwd=2, col="Orange")
+legend("topright", legend=c("Orange", "Blue"),
+            col=c("Orange", "Blue"), lty=1, cex=1)
+```
+
+### Kraby podzielowe wg zmiennej BD Female-Male
+```{r }
+d_BD_M=density(BD[sex=="M"],bw = "SJ") #Male
+d_BD_F=density(BD[sex=="F"],bw = "SJ") #Female
+
+#Punkt przecięcia gęstości dla klasyfikacji względem koloru na podstawie zmiennej BD
+index=which(d_BD_M$x<15.5 & d_BD_M$x>15.3)
+m=min(abs(d_BD_M$y-d_BD_F$y)[index])
+index_min=which(abs(d_BD_M$y-d_BD_F$y)[index]==m)
+index_Min=index[index_min]
+P1=d_BD_M$x[index_Min]
+#Odsetek poprawnie sklasyfikownych Male za pomocą zmiennej BD
+indeksyM=which(sex=="M")
+indeksyBD_M=which((sex=="M")&(BD>=P1))
+PoprawneBD_M=sum(complete.cases(indeksyBD_M))
+#Odestek poprawnie sklasyfikowanych Female za pomocą zmiennej BD
+indexF=which(sex=="F")
+indexBD_F=which((sex=="F")&(BD<P1))
+PoprawneBD_F=sum(complete.cases(indexBD_F))
+
+PoprawneBD_Sex=(PoprawneBD_M+PoprawneBD_F)/sum(complete.cases(crabs))*100
+Wynik=(paste0("Poprawność na poziomie ", PoprawneBD_Sex,"%"))
+
+plot(d_BD_M,lwd=2, col="Green", xlab="BD",main=Wynik, ylim=c(0,0.11))
+lines(d_BD_F,lwd=2, col="Red")
+legend("topright", legend=c("Male", "Female"),
+            col=c("Green", "Red"), lty=1, cex=1)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Kraby podzielowe wg zmiennej RW Orange-Blue
+```{r RW O/B JG}
+d_RW_B=density(RW[sp=="B"],bw = "SJ") #Blue
+d_RW_O=density(RW[sp=="O"],bw = "SJ") #Orange
+
+#Punkt przecięcia gęstości dla klasyfikacji względem koloru na podstawie zmiennej RW
+index=which(d_RW_B$x<14 & d_RW_B$x>13.8)
+m=min(sort(abs(d_RW_B$y-d_RW_O$y)[index]))
+index_min=which(abs(d_RW_B$y-d_RW_O$y)[index]==m)
+index_Min=index[index_min]
+P1=d_RW_B$x[index_Min]
+#Odsetek poprawnie sklasyfikownych Blue za pomocą zmiennej RW
+indeksyB=which(sp=="B")
+indeksyRW_B=which((sp=="B")&(crabs$RW<d_RW_B$x[index_Min]))
+PoprawneRW_B=sum(complete.cases(indeksyRW_B))
+#Odestek poprawnie sklasyfikowanych Orange za pomocą zmiennej RW
+indeksyO=which(sp=="O")
+indeksyRW_O=which((sp=="O")&(crabs$RW>d_RW_B$x[index_Min]))
+PoprawneRW_O=sum(complete.cases(indeksyRW_O))
+
+PoprawneRW=(PoprawneRW_B+PoprawneRW_O)/sum(complete.cases(crabs))*100
+Wynik=(paste0("Poprawność na poziomie ", PoprawneRW,"%"))
+
+plot(d_RW_B,col="Blue", lwd=2, xlab="RW", main=Wynik)
+lines(d_RW_O,col="Orange", lwd=2)
+legend("topright", legend=c("Orange", "Blue"),
+            col=c("Orange", "Blue"), lty=1, cex=1)
+```
+
+### Kraby podzielowe wg zmiennej RW Female-Male 
+```{r F/M JG}
+d_RW_M=density(crabs$RW[crabs$sex=="M"],bw = "SJ") #Male
+d_RW_F=density(crabs$RW[crabs$sex=="F"],bw = "SJ") #Female
+
+#Punkt przecięcia gęstości dla klasyfikacji względem koloru na podstawie zmiennej RW
+indeksy12=which(d_RW_M$x<13.95 & d_RW_M$x>13.8)
+m12=min(abs(d_RW_M$y-d_RW_F$y)[indeksy12])
+indeksy12min=which(abs(d_RW_M$y-d_RW_F$y)[indeksy12]==m12)
+indeksy12Min=indeksy12[indeksy12min]
+P1=d_RW_M$x[indeksy12Min]
+#Odsetek poprawnie sklasyfikownych Male za pomocą zmiennej RW
+indeksyM=which(sex=="M")
+indeksyRW_M=which((sex=="M")&(crabs$RW<P1))
+PoprawneRW_M=sum(complete.cases(indeksyRW_M))
+#Odestek poprawnie sklasyfikowanych Female za pomocą zmiennej RW
+indeksyF=which(sex=="F")
+indeksyRW_F=which((sex=="F")&(crabs$RW>P1))
+PoprawneRW_F=sum(complete.cases(indeksyRW_F))
+
+PoprawneRW_Sex=(PoprawneRW_M+PoprawneRW_F)/sum(complete.cases(crabs))*100
+
+Wynik=(paste0("Poprawność na poziomie ", PoprawneRW_Sex,"%"))
+plot(d_RW_M,lwd=2, col="Green", xlab="RW",main=Wynik)
+lines(d_RW_F,lwd=2, col="Red")
+legend("topright", legend=c("Male", "Female"),
+            col=c("Green", "Red"), lty=1, cex=1)
+```
+
+Test normalności 
+=======================================================================
+Na podstawie testu Shapiro-Wilka na poziomie istotnosci 0,05 nie ma podstaw do odrzucenia hipotezy o normalnosci rozkładów w grupach.
+
+Row
+-----------------------------------------------------------------------
+
+```{r echo=FALSE}
+tapply(X=CW,INDEX=sp,FUN=shapiro.test)
+```
+
+```{r}
+tapply(X=CW,INDEX=sex,FUN=shapiro.test)
+```
+
+Row
+-----------------------------------------------------------------------
+
+```{r}
+tapply(X=BD,INDEX=sp,FUN=shapiro.test)
+```
+
+```{r}
+tapply(X=BD,INDEX=sex,FUN=shapiro.test)
+```
+
+Row
+-----------------------------------------------------------------------
+
+```{r}
+tapply(X=RW,INDEX=sp,FUN=shapiro.test)
+```
+
+```{r}
+tapply(X=RW,INDEX=sex,FUN=shapiro.test)
+```
+
+Gęstość Rozkładu Normalnego
+=======================================================================
+Używając metody Gęstości Rozkładu Normalnego, spośród 3 zmiennych CW, BD, RW  najlepiej gatunek klasyfikuje zmienna BD. Jednakże zmienna RW lepiej klasyfikuje wszystkie cztery klasy 
+
+Row
+-----------------------------------------------------------------------
+
+### Kraby podzielowe wg zmiennej CW Orange-Blue
+```{r, results = 'hide'}
+#Orange
+CW_O=CW[sp=="O"]
+mixCW_O=normalmixEM(CW_O,k=2)
+
+p11=mixCW_O$lambda[1]
+m1=mixCW_O$mu[1]
+m2=mixCW_O$mu[2]
+s1=mixCW_O$sigma[1]
+s2=mixCW_O$sigma[2]
+
+#Blue
+CW_B=CW[sp=="B"]
+mixCW_B=normalmixEM(CW_B,k=2)
+
+p11a=mixCW_B$lambda[1]
+m1a=mixCW_B$mu[1]
+m2a=mixCW_B$mu[2]
+s1a=mixCW_B$sigma[1]
+s2a=mixCW_B$sigma[2]
+
+d1=function(x){p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2)}#Orange
+d2=function(x){p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a)}#Blue
+d12=function(x){d1(x)-d2(x)}
+
+P1=uniroot(d12,interval = c(20,50))
+P1=P1$root
+L2=P1
+
+c(-Inf,P1) #Blue  
+c(L2,Inf) #Orange
+
+#Wynik
+#Odsetek poprawnie sklasyfikownych Blue za pomocą zmiennej CW
+indeksB=which(sp=="B")
+indeksCW_B=which((sp=="B")&(CW<P1))
+PoprawnyCW_B=sum(complete.cases(indeksCW_B))
+#Odestek poprawnie sklasyfikowanych Orange za pomocą zmiennej CW
+indeksO=which(sp=="O")
+indeksCW_O=which((sp=="O")&(CW>P1))
+PoprawnyCW_O=sum(complete.cases(indeksCW_O))
+
+PoprawnyCW_sp=(PoprawnyCW_B+PoprawnyCW_O)/sum(complete.cases(crabs))*100
+Wynik=(paste0("Poprawność na poziomie ", PoprawnyCW_sp,"%"))
+
+curve(p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2),xlim =c(10,60),ylim=c(0,0.08),col="Orange",main=Wynik, xlab="CW", ylab="Density")
+curve(p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a),add=T, col="Blue")
+legend("topright", legend=c("Orange", "Blue"),
+            col=c("Orange", "Blue"), lty=1, cex=1)
+```
+
+### Kraby podzielowe wg zmiennej CW Female-Male
+```{r, results = 'hide'}
+#Male
+CW_M=CW[sex=="M"]
+mixCW_M=normalmixEM(CW_M,k=2)
+
+p11=mixCW_M$lambda[1]
+m1=mixCW_M$mu[1]
+m2=mixCW_M$mu[2]
+s1=mixCW_M$sigma[1]
+s2=mixCW_M$sigma[2]
+
+#Female
+CW_F=CW[sex=="F"]
+mixCW_F=normalmixEM(CW_F,k=2)
+
+p11a=mixCW_F$lambda[1]
+m1a=mixCW_F$mu[1]
+m2a=mixCW_F$mu[2]
+s1a=mixCW_F$sigma[1]
+s2a=mixCW_F$sigma[2]
+
+d1=function(x){p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2)}#Male
+d2=function(x){p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a)}#Female
+d12=function(x){d1(x)-d2(x)}
+
+P1=uniroot(d12,interval = c(20,50))
+P1=P1$root
+L2=P1
+
+#Wynik
+#Odsetek poprawnie sklasyfikownych Female za pomocą zmiennej CW
+indeksF=which(sex=="F")
+indeksCW_F=which((sex=="F")&(CW<=P1))
+PoprawnyCW_F=sum(complete.cases(indeksCW_F))
+#Odestek poprawnie sklasyfikowanych Male za pomocą zmiennej CW
+indeksM=which(sex=="M")
+indeksCW_M=which((sex=="M")&(CW>P1))
+PoprawnyCW_M=sum(complete.cases(indeksCW_M))
+
+PoprawnyCW_Sex=(PoprawnyCW_F+PoprawnyCW_M)/sum(complete.cases(crabs))*100
+Wynik=(paste0("Poprawność na poziomie ", PoprawnyCW_Sex,"%"))
+
+curve(p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2),from=10,to=60,ylim=c(0,0.08),col="Green",main=Wynik,xlab="CW", ylab="Density")
+curve(p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a),col="Red",add=T)
+legend("topright", legend=c("Male", "Female"),
+            col=c("Green", "Red"), lty=1, cex=1)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Kraby podzielowe wg zmiennej BD Orange-Blue
+```{r, results = 'hide'}
+#Orange
+BD_O=BD[sp=="O"]
+mixBD_O=normalmixEM(BD_O,k=2)
+
+p11=mixBD_O$lambda[1]
+m1=mixBD_O$mu[1]
+m2=mixBD_O$mu[2]
+s1=mixBD_O$sigma[1]
+s2=mixBD_O$sigma[2]
+
+#Blue
+BD_B=BD[sp=="B"]
+mixBD_B=normalmixEM(BD_B,k=2)
+
+p11a=mixBD_B$lambda[1]
+m1a=mixBD_B$mu[1]
+m2a=mixBD_B$mu[2]
+s1a=mixBD_B$sigma[1]
+s2a=mixBD_B$sigma[2]
+
+d1=function(x){p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2)}#Orange
+d2=function(x){p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a)}#Blue
+d12=function(x){d1(x)-d2(x)}
+
+P1=uniroot(d12,interval = c(5,25))
+P1=P1$root
+L2=P1
+
+
+#Wynik
+#Odsetek poprawnie sklasyfikownych Blue za pomocą zmiennej BD
+indeksB=which(sp=="B")
+indeksBD_B=which((sp=="B")&(BD<P1))
+PoprawnyBD_B=sum(complete.cases(indeksBD_B))
+#Odestek poprawnie sklasyfikowanych Orange za pomocą zmiennej BD
+indeksO=which(sp=="O")
+indeksBD_O=which((sp=="O")&(BD>P1))
+PoprawnyBD_O=sum(complete.cases(indeksBD_O))
+
+PoprawnyBD_sp=(PoprawnyBD_B+PoprawnyBD_O)/sum(complete.cases(crabs))*100
+Wynik=(paste0("Poprawność na poziomie ", PoprawnyBD_sp,"%"))
+
+curve(p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2),xlim =c(0,30),ylim=c(0,0.15),col="Orange",main=Wynik, xlab="BD", ylab="Density")
+curve(p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a),add=T, col="Blue")
+legend("topright", legend=c("Orange", "Blue"),
+            col=c("Orange", "Blue"), lty=1, cex=1)
+```
+
+### Kraby podzielowe wg zmiennej BD Female-Male
+```{r, results = 'hide'}
+#Male
+BD_M=BD[sex=="M"]
+mixBD_M=normalmixEM(BD_M,k=2)
+
+p11=mixBD_M$lambda[1]
+m1=mixBD_M$mu[1]
+m2=mixBD_M$mu[2]
+s1=mixBD_M$sigma[1]
+s2=mixBD_M$sigma[2]
+
+#Female
+BD_F=BD[sex=="F"]
+mixBD_F=normalmixEM(BD_F,k=2)
+
+p11a=mixBD_F$lambda[1]
+m1a=mixBD_F$mu[1]
+m2a=mixBD_F$mu[2]
+s1a=mixBD_F$sigma[1]
+s2a=mixBD_F$sigma[2]
+
+#Przedziały klas
+
+d1=function(x){p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2)}#Male
+d2=function(x){p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a)}#Female
+d12=function(x){d1(x)-d2(x)}
+
+P1=uniroot(d12,interval = c(14,20))
+P1=P1$root
+L2=P1
+
+c(-Inf,P1) #Female  
+c(L2,Inf) #Male
+
+#Wynik
+#Odsetek poprawnie sklasyfikownych Female za pomocą zmiennej BD
+indeksF=which(sex=="F")
+indeksBD_F=which((sex=="F")&(BD<P1))
+PoprawnyBD_F=sum(complete.cases(indeksBD_F))
+PoprawnyBD_F
+#Odestek poprawnie sklasyfikowanych Male za pomocą zmiennej BD
+indeksM=which(sex=="M")
+indeksBD_M=which((sex=="M")&(BD>P1))
+PoprawnyBD_M=sum(complete.cases(indeksBD_M))
+
+PoprawnyBD_Sex=(PoprawnyBD_M+PoprawnyBD_F)/sum(complete.cases(crabs))*100
+Wynik=(paste0("Poprawność na poziomie ", PoprawnyBD_Sex,"%"))
+
+curve(p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2),from=0,to=30,ylim=c(0,0.15),col="Green",main=Wynik,xlab="BD", ylab="Density")
+curve(p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a),col="Red",add=T)
+legend("topright", legend=c("Male", "Female"),
+            col=c("Green", "Red"), lty=1, cex=1)
+```
+
+Row
+-----------------------------------------------------------------------
+
+### Kraby podzielowe wg zmiennej RW Orange-Blue
+```{r, results = 'hide'}
+#Orange
+RW_O=RW[sp=="O"]
+mixRW_O=normalmixEM(RW_O,k=2)
+
+p11=mixRW_O$lambda[1]
+m1=mixRW_O$mu[1]
+m2=mixRW_O$mu[2]
+s1=mixRW_O$sigma[1]
+s2=mixRW_O$sigma[2]
+
+#Blue
+RW_B=RW[sp=="B"]
+mixRW_B=normalmixEM(RW_B,k=2)
+
+p11a=mixRW_B$lambda[1]
+m1a=mixRW_B$mu[1]
+m2a=mixRW_B$mu[2]
+s1a=mixRW_B$sigma[1]
+s2a=mixRW_B$sigma[2]
+
+d1=function(x){p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2)}#Orange
+d2=function(x){p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a)}#Blue
+d12=function(x){d1(x)-d2(x)}
+
+P1=uniroot(d12,interval = c(10,20))
+P1=P1$root
+L2=P1
+
+c(-Inf,P1) #Blue  
+c(L2,Inf) #Orange
+
+#Wynik
+#Odsetek poprawnie sklasyfikownych Blue za pomocą zmiennej RW
+indeksB=which(sp=="B")
+indeksRW_B=which((sp=="B")&(RW<P1))
+PoprawnyRW_B=sum(complete.cases(indeksRW_B))
+
+#Odestek poprawnie sklasyfikowanych Orange za pomocą zmiennej RW
+indeksO=which(sp=="O")
+indeksRW_O=which((sp=="O")&(RW>P1))
+PoprawnyRW_O=sum(complete.cases(indeksRW_O))
+
+PoprawnyRW_Sp=(PoprawnyRW_B+PoprawnyRW_O)/sum(complete.cases(crabs))*100
+Wynik=(paste0("Poprawność na poziomie ", PoprawnyRW_Sp,"%"))
+
+curve(p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2),xlim =c(5,25),ylim=c(0,0.18),col="Orange",main=Wynik, xlab="BD", ylab="Density")
+curve(p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a),add=T, col="Blue")
+legend("topright", legend=c("Orange", "Blue"),
+            col=c("Orange", "Blue"), lty=1, cex=1)
+
+```
+
+### Kraby podzielowe wg zmiennej RW Female-Male
+```{r, results = 'hide'}
+#Male
+RW_M=RW[sex=="M"]
+mixRW_M=normalmixEM(RW_M,k=2)
+
+p11=mixRW_M$lambda[1]
+m1=mixRW_M$mu[1]
+m2=mixRW_M$mu[2]
+s1=mixRW_M$sigma[1]
+s2=mixRW_M$sigma[2]
+
+#Female
+RW_F=RW[sex=="F"]
+mixRW_F=normalmixEM(RW_F,k=2)
+
+p11a=mixRW_F$lambda[1]
+m1a=mixRW_F$mu[1]
+m2a=mixRW_F$mu[2]
+s1a=mixRW_F$sigma[1]
+s2a=mixRW_F$sigma[2]
+
+d1=function(x){p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2)}#Male
+d2=function(x){p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a)}#Female
+d12=function(x){d1(x)-d2(x)}
+
+P1=uniroot(d12,interval = c(10,20))
+P1=P1$root
+L2=P1
+
+c(-Inf,P1) #Female  
+c(L2,Inf) #Male
+
+#Wynik
+#Odsetek poprawnie sklasyfikownych Female za pomocą zmiennej RW
+indeksF=which(sex=="F")
+indeksRW_F=which((sex=="F")&(RW>P1))
+PoprawnyRW_F=sum(complete.cases(indeksRW_F))
+#Odestek poprawnie sklasyfikowanych Male za pomocą zmiennej RW
+indeksM=which(sex=="M")
+indeksRW_M=which((sex=="M")&(RW<P1))
+PoprawnyRW_M=sum(complete.cases(indeksRW_M))
+
+PoprawnyRW=(PoprawnyRW_F+PoprawnyRW_M)/sum(complete.cases(crabs))*100
+Wynik=(paste0("Poprawność na poziomie ", PoprawnyRW,"%"))
+
+curve(p11*dnorm(x,m1,s1)+(1-p11)*dnorm(x,m2,s2),from=5,to=25,ylim=c(0,0.19),col="Green",main=Wynik,xlab="BD", ylab="Density")
+curve(p11a*dnorm(x,m1a,s1a)+(1-p11a)*dnorm(x,m2a,s2a),col="Red",add=T)
+legend("topright", legend=c("Male", "Female"),
+            col=c("Green", "Red"), lty=1, cex=1)
+
+```
+
+Mieszaniny roz. norm. 
+=======================================================================
+
